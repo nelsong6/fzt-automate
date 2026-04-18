@@ -144,6 +144,7 @@ func main() {
 				{Name: "delete", Description: "Delete highlighted item", Action: "delete"},
 				{Name: "save", Description: "Save changes to cloud", Action: "save"},
 			}},
+			{Name: "states", Description: "Toggle state inspector banner (suppresses action execution)", Action: "toggle-states"},
 			{Name: "shortcuts", Description: "Keyboard shortcuts", Children: []core.CommandItem{
 				{Name: "shift", Description: "modifier key (all shortcuts)"},
 				{Name: "shift+enter", Description: "confirm action"},
