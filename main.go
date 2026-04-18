@@ -180,11 +180,13 @@ func main() {
 
 	if result == "unloaded" {
 		fmt.Fprintln(os.Stderr, "identity unloaded")
+		tui.PauseIfInteractive()
 		os.Exit(130)
 	}
 
 	if result == "loaded" || result == "synced" {
 		fmt.Fprintln(os.Stderr, "synced — reopen to see menu")
+		tui.PauseIfInteractive()
 		os.Exit(130)
 	}
 
