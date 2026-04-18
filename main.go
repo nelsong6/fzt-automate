@@ -1,18 +1,26 @@
 // fzt-automate — shell automation tool powered by fzt.
 //
-// Loads a YAML menu, presents an interactive tree picker, and prints the
-// selected leaf name to stdout. The shell wrapper executes it as a function.
+// Loads its menu cache from a config directory, presents an interactive tree
+// picker, and prints the selected leaf name to stdout. The shell wrapper
+// executes it as a function.
+//
+// Config directory is determined in this order:
+//  1. $FZT_CONFIG_DIR if set
+//  2. %LOCALAPPDATA%\fzt-automate (Windows)
+//  3. $XDG_CONFIG_HOME/fzt-automate (Linux/Mac with XDG)
+//  4. $HOME/.config/fzt-automate (fallback)
 //
 // Usage:
 //
-//	fzt-automate --yaml /path/to/menu.yaml
-//	fzt-automate --yaml /path/to/menu.yaml --title "What would you like to do?"
+//	fzt-automate
+//	fzt-automate --title "What would you like to do?"
 package main
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -21,24 +29,38 @@ import (
 	"github.com/nelsong6/fzt-terminal/tui"
 )
 
+// configDir returns the directory holding fzt-automate's menu cache and state.
+// Honors $FZT_CONFIG_DIR if set, otherwise uses the OS convention.
+//
+// On Windows, uses %USERPROFILE%\.fzt-automate rather than %LOCALAPPDATA%
+// because Windows Terminal (a Store-packaged app) virtualizes LOCALAPPDATA
+// for its child processes — files placed there by non-WT processes aren't
+// visible to WT-spawned shells. USERPROFILE isn't virtualized.
+func configDir() string {
+	if d := os.Getenv("FZT_CONFIG_DIR"); d != "" {
+		return d
+	}
+	if runtime.GOOS == "windows" {
+		return filepath.Join(os.Getenv("USERPROFILE"), ".fzt-automate")
+	}
+	if xdg := os.Getenv("XDG_CONFIG_HOME"); xdg != "" {
+		return filepath.Join(xdg, "fzt-automate")
+	}
+	return filepath.Join(os.Getenv("HOME"), ".config", "fzt-automate")
+}
+
 func main() {
 	if render.Version == "UNSET" {
-		fmt.Fprintln(os.Stderr, "fzt-automate: version not set — use 'go run ./build automate' or build with ldflags")
+		fmt.Fprintln(os.Stderr, "fzt-automate: version not set — build with 'go run ./build' (not 'go build .')")
 		os.Exit(1)
 	}
 
-	yamlPath := ""
 	title := "What would you like to do?"
 	header := "Name\tDescription"
 
 	args := os.Args[1:]
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
-		case "--yaml":
-			if i+1 < len(args) {
-				yamlPath = args[i+1]
-				i++
-			}
 		case "--title":
 			if i+1 < len(args) {
 				title = args[i+1]
@@ -55,13 +77,12 @@ func main() {
 		}
 	}
 
-	if yamlPath == "" {
-		fmt.Fprintln(os.Stderr, "fzt-automate: --yaml is required")
+	cfgDir := configDir()
+	if err := os.MkdirAll(cfgDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "fzt-automate: creating config dir %s: %v\n", cfgDir, err)
 		os.Exit(1)
 	}
-
-	configDir := filepath.Dir(yamlPath)
-	cacheFile := filepath.Join(configDir, "menu-cache.yaml")
+	cacheFile := filepath.Join(cfgDir, "menu-cache.yaml")
 
 	var items []core.Item
 	if _, err := os.Stat(cacheFile); err == nil {
@@ -74,14 +95,14 @@ func main() {
 
 	// Read loaded identity for whoami display
 	identity := ""
-	identityFile := filepath.Join(configDir, ".identity")
+	identityFile := filepath.Join(cfgDir, ".identity")
 	if data, err := os.ReadFile(identityFile); err == nil {
 		identity = strings.TrimSpace(string(data))
 	}
 
 	// Read persisted menu version for conflict detection on save
 	menuVersion := 0
-	versionFile := filepath.Join(configDir, ".menu-version")
+	versionFile := filepath.Join(cfgDir, ".menu-version")
 	if data, err := os.ReadFile(versionFile); err == nil {
 		menuVersion, _ = strconv.Atoi(strings.TrimSpace(string(data)))
 	}
@@ -106,7 +127,7 @@ func main() {
 		FrontendName:    "automate",
 		FrontendVersion: render.Version,
 		InitialDisplay:  identity,
-		ConfigDir:          configDir,
+		ConfigDir:          cfgDir,
 		InitialMenuVersion: menuVersion,
 		FrontendCommands: []core.CommandItem{
 			{Name: "load", Description: "Load an identity profile", Children: []core.CommandItem{
