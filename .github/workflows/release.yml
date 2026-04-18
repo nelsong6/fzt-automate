@@ -1,0 +1,27 @@
+name: Release
+
+# Fires on direct pushes to main. Leaf with binary artifacts — no downstream
+# dispatch, but fires build.yml with the new tag so it can build and upload
+# the three OS binaries (Windows/Linux/macOS) to the just-cut release.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'go.mod'
+      - 'go.sum'
+
+concurrency:
+  group: release-tag
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+  id-token: write
+
+jobs:
+  release:
+    uses: nelsong6/pipeline-templates/.github/workflows/release-and-dispatch-template.yml@main
+    with:
+      artifact-build-workflow: build.yml
