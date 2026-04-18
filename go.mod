@@ -3,8 +3,8 @@ module github.com/nelsong6/fzt-automate
 go 1.26.1
 
 require (
-	github.com/nelsong6/fzt v0.2.55
-	github.com/nelsong6/fzt-terminal v0.1.52
+	github.com/nelsong6/fzt v0.2.56
+	github.com/nelsong6/fzt-terminal v0.1.53
 )
 
 require (
