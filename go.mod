@@ -4,8 +4,8 @@ go 1.26.1
 
 require (
 	github.com/nelsong6/fzt v0.2.67
-	github.com/nelsong6/fzt-frontend v0.1.26
-	github.com/nelsong6/fzt-terminal v0.1.89
+	github.com/nelsong6/fzt-frontend v0.1.28
+	github.com/nelsong6/fzt-terminal v0.1.90
 )
 
 require (
