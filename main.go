@@ -26,6 +26,7 @@ import (
 
 	"github.com/nelsong6/fzt/core"
 	"github.com/nelsong6/fzt/render"
+	frontend "github.com/nelsong6/fzt-frontend"
 	"github.com/nelsong6/fzt-terminal/tui"
 )
 
@@ -140,13 +141,7 @@ func main() {
 			}},
 			{Name: "unload", Description: "Clear loaded identity", Action: "unload"},
 			{Name: "sync", Description: "Sync menu from cloud", Action: "sync"},
-			{Name: "edit", Description: "Edit menu tree", Children: []core.CommandItem{
-				{Name: "add-after", Description: "Add item after cursor", Action: "add-after"},
-				{Name: "add-folder", Description: "Create folder at cursor", Action: "add-folder"},
-				{Name: "edit-item", Description: "Edit item properties", Action: "rename"},
-				{Name: "delete", Description: "Delete highlighted item", Action: "delete"},
-				{Name: "save", Description: "Save changes to cloud", Action: "save"},
-			}},
+			frontend.EditCommands(),
 			{Name: "update", Description: "Update fzt-automate to latest release", Action: "update"},
 			{Name: "states", Description: "Toggle state inspector banner (suppresses action execution)", Action: "toggle-states"},
 			{Name: "shortcuts", Description: "Keyboard shortcuts", Children: []core.CommandItem{
