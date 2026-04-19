@@ -1,19 +1,9 @@
 name: Release
 
-# Fires on direct pushes to main. Leaf with binary artifacts — no downstream
-# dispatch, but fires build.yml with the new tag so it can build and upload
-# the three OS binaries (Windows/Linux/macOS) to the just-cut release.
+# Auto-trigger disabled — Claude-driven CI. Run manually via
+# `gh workflow run release.yml -R nelsong6/fzt-automate`.
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - 'go.mod'
-      - 'go.sum'
-  # Manual recovery: fire the release path without advancing HEAD. Useful
-  # when a cascade stranded code on main without a tag and we need to
-  # re-release the existing HEAD. The template's skip guard correctly
-  # no-ops if the latest release is already at HEAD.
   workflow_dispatch:
 
 concurrency:
